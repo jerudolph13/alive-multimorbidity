@@ -5,14 +5,17 @@
 #
 # Author: Jacqueline Rudolph
 #
-# Last Update: 06 Oct 2021
+# Last Update: 04 Apr 2022
 #
 ###################################################################################################################
 
 library("tidyverse")
 library("lubridate")
-load(file="../data/jackiereq.rdata")
-load(file="../data/jackiereq3.rdata")
+
+load(file="../../../raw_data/alive/jackiereq.rdata")
+load(file="../../../raw_data/alive/jackiereq3.rdata")
+load(file="../../../raw_data/alive/jackiereq4.rdata")
+load(file="../../../raw_data/alive/jackiereq5.rdata")
 
 dat <- tibble(jackiereq2) %>% 
   arrange(id, visdate)
@@ -119,5 +122,17 @@ write_csv(drug, file="../data/alive_drug.csv")
 qual <- dat %>% 
   select(id, visit, visdate, enroll_period, gnbdypn, gnhlthst, mosphs, mosmhs, jailge7d)
 write_csv(qual, file="../data/alive_qual.csv")
+
+
+# Mortality data ----------------------------------------------------------
+
+deaths <- tibble(jackiereq5) %>% 
+  filter(dead20f==1) %>% 
+  mutate(dod = ymd(dthdate20f),
+         yod = year(dod)) %>% 
+  select(id, dod, yod)
+
+write_csv(deaths, file="../data/alive_mort.csv")
+
 
 
