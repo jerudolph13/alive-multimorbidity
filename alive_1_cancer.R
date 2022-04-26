@@ -1,13 +1,13 @@
 
-###################################################################################################################
+###########################################################################
 #
 # Purpose: Read in and manipulate ALIVE cancer data
 #
 # Author: Jacqueline Rudolph
 #
-# Last Update: 05 Apr 2022
+# Last Update: 26 Apr 2022
 #
-###################################################################################################################
+###########################################################################
 
 library("tidyverse")
 library("lubridate")
@@ -16,6 +16,7 @@ library("lubridate")
 # Read in data ------------------------------------------------------------
 
 load(file="../../../raw_data/alive/jackiereq6.rdata")
+surv <- read_csv("../data/cancer_survival.csv")
 
 
 # Diagnoses ---------------------------------------------------------------
@@ -131,6 +132,57 @@ cancer <- bind_cols(cancer.dx, select(cancer.tx, -c("id", "dx_date"))) %>%
     TRUE ~ 0),
     std_trt = ifelse(std_trt==99, NA, std_trt))
 
+
+# Survival ----------------------------------------------------------------
+
+surv2 <- surv %>% 
+  filter(sex=="Male and female" & race=="All races") %>%
+  mutate(poor_prog = as.numeric(survival < 0.5)) %>% # Change threshold and see how results differ
+  select(-c(sex, race))
+surv2$stage <- recode(surv2$stage, "Unknown/unstaged" = "unknown",
+                                   "Localized" = "local",
+                                   "Regional" = "regional",
+                                   "Distant" = "distant")
+
+cancer2 <- cancer %>% 
+  mutate(site = case_when(
+    cancer_type=="acutemyelleuk" ~ "Acute Myeloid Leukemia",
+    cancer_type=="anus" ~ "Colon and Rectum",
+    cancer_type=="bladder" ~ "Urinary Bladder",
+    cancer_type=="brain" ~ "Brain and Other Nervous System",
+    cancer_type=="cervix" ~ "Cervix Uteri",
+    cancer_type=="chronlymphleuk" ~ "Chronic Lymphocytic Leukemia",
+    cancer_type=="chronmyelleuk" ~ "Chronic Myeloid Leukemia",
+    cancer_type %in% c("colonnotrect", "rectandsig") ~ "Colon and Rectum",
+    cancer_type=="esophagus" ~ "Esophagus",
+    cancer_type %in% c("fembreast", "malebreast") ~ "Breast",
+    cancer_type=="gallbladder" ~ "Gallbladder",
+    cancer_type %in% c("gumothermouth", "oropharynx", "otherbucphar", 
+                       "tongue") ~ "Oral cavity and pharynx",
+    cancer_type=="hodgelymph" ~ "Hodgkin Lymphoma",
+    cancer_type=="kapsarc" ~ "Kaposi Sarcoma",
+    cancer_type=="kidneyren" ~ "Kidney and Renal Pelvis",
+    cancer_type=="larynx" ~ "Larynx",
+    cancer_type=="liverandduct" ~ "Liver and Intrahepatic Bile Duct",
+    cancer_type=="lungbronch" ~ "Lung and Bronchus",
+    cancer_type=="mesothelio" ~ "Mesothelioma",
+    cancer_type=="multmyeloma" ~ "Myeloma",
+    cancer_type=="nonhodgelymph" ~ "Non-Hodgkin Lymphoma",
+    cancer_type=="ovary" ~ "Ovary",
+    cancer_type=="pancreas" ~ "Pancreas",
+    cancer_type=="prostate" ~ "Prostate",
+    cancer_type=="skinmelan" ~ "Melanoma of the Skin",
+    cancer_type=="softtissue" ~ "Soft Tissue including Heart",
+    cancer_type=="stomach" ~ "Stomach",
+    cancer_type=="testis" ~ "Testis",
+    cancer_type=="thyroid" ~ "Thyroid",
+    cancer_type %in% c("AINgradeIII", "benigncnsendo", "benignothnerve",
+                       "CINgradeIII", "insitubladder", "insitucervix",
+                       "insitufembreast", "VAINgradeIII", "VINgradeIII",
+                       "othdig", "otherendoc", "otherilldefined", 
+                       "othfemgen", "smallintest", "ureter") ~ "NA")) %>% 
+  left_join(surv2, by=c("site", "stage"))
+  
 
 # Output data -------------------------------------------------------------
 
