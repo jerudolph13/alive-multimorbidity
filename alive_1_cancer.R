@@ -139,11 +139,14 @@ cancer <- bind_cols(cancer.dx, select(cancer.tx, -c("id", "dx_date"))) %>%
 # Survival ----------------------------------------------------------------
 
 surv2 <- surv %>% 
-  filter(sex=="Male and female" & race=="All races") %>%
+  filter(race=="All races" & 
+           ((sex=="Male and female" & !(site %in% c("Cervix Uteri", "Corpus and Uterus, NOS", "Ovary", "Prostate", "Testis"))) |
+            (sex=="Female" & site %in% c("Cervix Uteri", "Corpus and Uterus, NOS", "Ovary")) |
+            (sex=="Male" & site %in% c("Prostate", "Testis")))) %>%
   mutate(poor_prog = as.numeric(survival < 0.5)) %>% # Change threshold and see how results differ
   select(-c(sex, race))
 surv2$stage <- recode(surv2$stage, "Unknown/unstaged" = "unknown",
-                                   "Localized" = "local",
+                                   "Localized" = "localized",
                                    "Regional" = "regional",
                                    "Distant" = "distant")
 
@@ -161,7 +164,7 @@ cancer2 <- cancer %>%
     cancer_type %in% c("fembreast", "malebreast") ~ "Breast",
     cancer_type=="gallbladder" ~ "Gallbladder",
     cancer_type %in% c("gumothermouth", "oropharynx", "otherbucphar", 
-                       "tongue") ~ "Oral cavity and pharynx",
+                       "tongue") ~ "Oral Cavity and Pharynx",
     cancer_type=="hodgelymph" ~ "Hodgkin Lymphoma",
     cancer_type=="kapsarc" ~ "Kaposi Sarcoma",
     cancer_type=="kidneyren" ~ "Kidney and Renal Pelvis",
@@ -189,4 +192,4 @@ cancer2 <- cancer %>%
 
 # Output data -------------------------------------------------------------
 
-write_csv(cancer, file="../data/alive_cancer.csv")
+write_csv(cancer2, file="../data/alive_cancer.csv")
