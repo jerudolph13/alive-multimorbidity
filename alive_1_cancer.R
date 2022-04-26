@@ -79,6 +79,13 @@ cancer.tx <- tibble(jackiereq6) %>%
 cancer <- bind_cols(cancer.dx, select(cancer.tx, -c("id", "dx_date"))) %>% 
   # Determine if standard treatment was received
   mutate(std_trt = case_when(
+    # Regardless of stage, blood cancers that receive chemo/radiation are properly treated
+    (cancer_type %in% c("chronlymphleuk", "chronmyelleuk", "acutemyelleuk")) & !is.na(yr_chemo) ~ 1,
+    cancer_type=="hodgelymph" & !is.na(yr_chemo) ~ 1,
+    cancer_type=="multmyeloma" & !is.na(yr_chemo) ~ 1,
+    cancer_type=="nonhodgelymph" & !is.na(yr_chemo) ~ 1,
+    
+    # Now determine for all other types    
     cancer_type=="otherilldefined" | stage=="unknown" ~ 99, #case_when does not like NA
     stage=="distant" ~ 0,
     stage=="benign" ~ 1,
@@ -97,16 +104,12 @@ cancer <- bind_cols(cancer.dx, select(cancer.tx, -c("id", "dx_date"))) %>%
     cancer_type=="esophagus" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
     cancer_type=="gallbladder" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
     cancer_type=="gumothermouth" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
-    cancer_type=="hodgelymph" & !is.na(yr_chemo) ~ 1,
     cancer_type=="kapsarc" ~ 1, # Check later if they got ART?
     cancer_type=="kidneyren" & !is.na(yr_surg) ~ 1,
     cancer_type=="larynx" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
-    (cancer_type %in% c("chronlymphleuk", "chronmyelleuk", "acutemyelleuk")) & !is.na(yr_chemo) ~ 1,
     cancer_type=="liverandduct" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
     cancer_type=="lungbronch" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
     cancer_type=="mesothelio" & (!is.na(yr_surg) | !is.na(yr_chemo)) ~ 1,
-    cancer_type=="multmyeloma" & !is.na(yr_chemo) ~ 1,
-    cancer_type=="nonhodgelymph" & !is.na(yr_chemo) ~ 1,
     cancer_type=="oropharynx" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
     cancer_type=="othdig" & (!is.na(yr_surg) | !is.na(yr_chemo)) ~ 1,
     cancer_type=="otherbucphar" & (!is.na(yr_surg) | !is.na(yr_chemo) | !is.na(yr_rad)) ~ 1,
